@@ -734,10 +734,13 @@
             ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary text-white">男前</span>'
             : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-secondary text-white">女々しい</span>';
 
-          // Mode badge
+          // Mode badge & Scale badge
+          const scaleBadge = (log.scale === 5 || log.version === 2)
+            ? '<span class="ml-1 px-1.5 py-0.2 rounded text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200">5択</span>'
+            : '<span class="ml-1 px-1.5 py-0.2 rounded text-[10px] bg-surface-container text-secondary">3択</span>';
           const modeBadge = log.mode === 'quick'
-            ? '<span class="px-1.5 py-0.5 rounded text-[11px] bg-surface-container text-secondary">クイック (30問)</span>'
-            : '<span class="px-1.5 py-0.5 rounded text-[11px] bg-primary-fixed text-on-primary-fixed font-medium">精密フル (85問)</span>';
+            ? `<span class="px-1.5 py-0.5 rounded text-[11px] bg-surface-container text-secondary">クイック(30問)${scaleBadge}</span>`
+            : `<span class="px-1.5 py-0.5 rounded text-[11px] bg-primary-fixed text-on-primary-fixed font-medium">精密フル(85問)${scaleBadge}</span>`;
 
           // Top traits
           let topTraitsStr = '---';
@@ -961,9 +964,13 @@
           const paramVals = CATEGORIES.map(c => l.paramScores ? (l.paramScores[c] ?? '') : '');
           const qVals = ALL_QUESTIONS.map(q => {
             const ans = l.answers ? l.answers[q.id] : '';
-            if (ans === 'yes') return 'はい';
-            if (ans === 'neutral') return 'どちらともいえない';
-            if (ans === 'no') return 'いいえ';
+            if (ans === 'agree') return '同意(+2)';
+            if (ans === 'somewhat_agree') return 'やや同意(+1)';
+            if (ans === 'neutral') return '中立(0)';
+            if (ans === 'somewhat_disagree') return 'やや反対(-1)';
+            if (ans === 'disagree') return '反対(-2)';
+            if (ans === 'yes') return 'はい(+2)';
+            if (ans === 'no') return 'いいえ(-2)';
             return '';
           });
 

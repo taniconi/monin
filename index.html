@@ -318,7 +318,7 @@
         </div>
 
         <!-- Primary Assessment Prompt Container (Fixed min-height with vertically centered text to prevent button shift) -->
-        <section class="relative w-full min-h-[210px] sm:min-h-[175px] rounded-xl bg-surface-container-lowest p-6 shadow-md shadow-primary/5 flex flex-col justify-between">
+        <section class="relative w-full min-h-[185px] sm:min-h-[160px] rounded-xl bg-surface-container-lowest p-6 shadow-md shadow-primary/5 flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <span id="diag-q-index-label" class="font-label-sm text-label-sm text-secondary">Q.1</span>
           </div>
@@ -330,45 +330,76 @@
           </div>
         </section>
 
-        <!-- Answer Selection Nodes -->
-        <section aria-label="設問の回答候補" class="w-full flex flex-col gap-3 pt-6 pb-4" role="radiogroup">
-          <!-- Option 1: Yes / はい -->
-          <button class="option-btn group relative w-full min-h-[58px] px-5 py-3.5 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="yes" type="button">
-            <div class="flex items-center gap-3.5">
-              <div class="status-indicator w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-[18px] check-icon transition-opacity opacity-0 text-secondary">check</span>
+        <!-- Answer Selection Nodes (5-Point Likert Scale) -->
+        <section aria-label="設問の回答候補" class="w-full flex flex-col gap-2 pt-3 pb-3" role="radiogroup">
+          <!-- 1: 同意 (+2) -->
+          <button class="option-btn group relative w-full min-h-[48px] sm:min-h-[50px] px-4 py-2 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="agree" type="button">
+            <div class="flex items-center gap-3">
+              <div class="status-indicator w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center transition-colors shrink-0">
+                <span class="material-symbols-outlined text-[16px] check-icon transition-opacity opacity-0 text-secondary">check_circle</span>
               </div>
               <div class="flex flex-col">
-                <span class="font-label-lg text-label-lg font-semibold tracking-wide">はい</span>
-                <span class="font-label-sm text-label-sm text-secondary sub-text">同意する・共感できる</span>
+                <span class="font-label-lg text-[14px] font-semibold tracking-wide">同意</span>
+                <span class="font-label-sm text-[11px] text-secondary sub-text">強く同意する・共感</span>
               </div>
             </div>
+            <span class="font-label-sm text-[12px] font-bold text-secondary points-badge shrink-0">+2</span>
           </button>
 
-          <!-- Option 2: Neutral / どちらともいえない -->
-          <button class="option-btn group relative w-full min-h-[58px] px-5 py-3.5 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="neutral" type="button">
-            <div class="flex items-center gap-3.5">
-              <div class="status-indicator w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-[18px] check-icon transition-opacity opacity-0 text-secondary">remove</span>
+          <!-- 2: やや同意 (+1) -->
+          <button class="option-btn group relative w-full min-h-[48px] sm:min-h-[50px] px-4 py-2 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="somewhat_agree" type="button">
+            <div class="flex items-center gap-3">
+              <div class="status-indicator w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center transition-colors shrink-0">
+                <span class="material-symbols-outlined text-[16px] check-icon transition-opacity opacity-0 text-secondary">check</span>
               </div>
               <div class="flex flex-col">
-                <span class="font-label-lg text-label-lg font-semibold tracking-wide">どちらともいえない</span>
-                <span class="font-label-sm text-label-sm text-secondary sub-text">中立・状況によって異なる</span>
+                <span class="font-label-lg text-[14px] font-semibold tracking-wide">やや同意</span>
+                <span class="font-label-sm text-[11px] text-secondary sub-text">どちらかといえば同意</span>
               </div>
             </div>
+            <span class="font-label-sm text-[12px] font-bold text-secondary points-badge shrink-0">+1</span>
           </button>
 
-          <!-- Option 3: No / いいえ -->
-          <button class="option-btn group relative w-full min-h-[58px] px-5 py-3.5 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="no" type="button">
-            <div class="flex items-center gap-3.5">
-              <div class="status-indicator w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center transition-colors">
-                <span class="material-symbols-outlined text-[18px] check-icon transition-opacity opacity-0 text-secondary">close</span>
+          <!-- 3: 中立 (0) -->
+          <button class="option-btn group relative w-full min-h-[48px] sm:min-h-[50px] px-4 py-2 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="neutral" type="button">
+            <div class="flex items-center gap-3">
+              <div class="status-indicator w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center transition-colors shrink-0">
+                <span class="material-symbols-outlined text-[16px] check-icon transition-opacity opacity-0 text-secondary">remove</span>
               </div>
               <div class="flex flex-col">
-                <span class="font-label-lg text-label-lg font-semibold tracking-wide">いいえ</span>
-                <span class="font-label-sm text-label-sm text-secondary sub-text">同意しない・違和感がある</span>
+                <span class="font-label-lg text-[14px] font-semibold tracking-wide">中立</span>
+                <span class="font-label-sm text-[11px] text-secondary sub-text">どちらともいえない</span>
               </div>
             </div>
+            <span class="font-label-sm text-[12px] font-bold text-secondary points-badge shrink-0">0</span>
+          </button>
+
+          <!-- 4: やや反対 (-1) -->
+          <button class="option-btn group relative w-full min-h-[48px] sm:min-h-[50px] px-4 py-2 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="somewhat_disagree" type="button">
+            <div class="flex items-center gap-3">
+              <div class="status-indicator w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center transition-colors shrink-0">
+                <span class="material-symbols-outlined text-[16px] check-icon transition-opacity opacity-0 text-secondary">close</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-label-lg text-[14px] font-semibold tracking-wide">やや反対</span>
+                <span class="font-label-sm text-[11px] text-secondary sub-text">どちらかといえば反対</span>
+              </div>
+            </div>
+            <span class="font-label-sm text-[12px] font-bold text-secondary points-badge shrink-0">-1</span>
+          </button>
+
+          <!-- 5: 反対 (-2) -->
+          <button class="option-btn group relative w-full min-h-[48px] sm:min-h-[50px] px-4 py-2 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left" data-val="disagree" type="button">
+            <div class="flex items-center gap-3">
+              <div class="status-indicator w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center transition-colors shrink-0">
+                <span class="material-symbols-outlined text-[16px] check-icon transition-opacity opacity-0 text-secondary">cancel</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-label-lg text-[14px] font-semibold tracking-wide">反対</span>
+                <span class="font-label-sm text-[11px] text-secondary sub-text">同意しない・違和感</span>
+              </div>
+            </div>
+            <span class="font-label-sm text-[12px] font-bold text-secondary points-badge shrink-0">-2</span>
           </button>
         </section>
 
@@ -736,9 +767,16 @@
         renderCurrentQuestion();
       });
 
-      // --- QUESTION RENDERING ---
+      // --- QUESTION RENDERING (5-Point Likert Scale) ---
       const OPTION_STYLES = {
-        yes: {
+        agree: {
+          bg: 'bg-primary',
+          text: 'text-on-primary',
+          sub: 'text-primary-fixed-dim',
+          indicatorBg: 'bg-primary-container',
+          indicatorText: 'text-on-primary'
+        },
+        somewhat_agree: {
           bg: 'bg-primary-container',
           text: 'text-on-primary',
           sub: 'text-on-primary-container',
@@ -752,22 +790,46 @@
           indicatorBg: 'bg-tertiary',
           indicatorText: 'text-on-tertiary'
         },
-        no: {
+        somewhat_disagree: {
+          bg: 'bg-secondary',
+          text: 'text-on-secondary',
+          sub: 'text-secondary-fixed',
+          indicatorBg: 'bg-surface-container-highest',
+          indicatorText: 'text-on-surface'
+        },
+        disagree: {
+          bg: 'bg-inverse-surface',
+          text: 'text-inverse-on-surface',
+          sub: 'text-outline-variant',
+          indicatorBg: 'bg-outline',
+          indicatorText: 'text-white'
+        },
+        // Backwards compatibility for 3-choice records:
+        yes: {
           bg: 'bg-primary',
           text: 'text-on-primary',
-          sub: 'text-surface-variant',
-          indicatorBg: 'bg-secondary',
-          indicatorText: 'text-on-secondary'
+          sub: 'text-primary-fixed-dim',
+          indicatorBg: 'bg-primary-container',
+          indicatorText: 'text-on-primary'
+        },
+        no: {
+          bg: 'bg-inverse-surface',
+          text: 'text-inverse-on-surface',
+          sub: 'text-outline-variant',
+          indicatorBg: 'bg-outline',
+          indicatorText: 'text-white'
         }
       };
 
       function resetOptionButtons() {
         optionButtons.forEach(btn => {
-          btn.className = 'option-btn group relative w-full min-h-[58px] px-5 py-3.5 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left';
+          btn.className = 'option-btn group relative w-full min-h-[48px] sm:min-h-[50px] px-4 py-2 rounded-xl bg-surface-container-lowest text-on-surface shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-between text-left';
           const sub = btn.querySelector('.sub-text');
-          if (sub) sub.className = 'font-label-sm text-label-sm text-secondary sub-text';
+          if (sub) sub.className = 'font-label-sm text-[11px] text-secondary sub-text';
+          const pts = btn.querySelector('.points-badge');
+          if (pts) pts.className = 'font-label-sm text-[12px] font-bold text-secondary points-badge shrink-0';
           const indicator = btn.querySelector('.status-indicator');
-          if (indicator) indicator.className = 'status-indicator w-7 h-7 rounded-full bg-surface-container-high flex items-center justify-center transition-colors';
+          if (indicator) indicator.className = 'status-indicator w-6 h-6 rounded-full bg-surface-container-high flex items-center justify-center transition-colors shrink-0';
           const icon = btn.querySelector('.check-icon');
           if (icon) {
             icon.classList.remove('opacity-100', 'text-on-primary', 'text-on-tertiary', 'text-on-secondary');
@@ -778,12 +840,18 @@
 
       function applySelectionStyle(btn, type) {
         const cfg = OPTION_STYLES[type];
+        if (!cfg) return;
         btn.classList.remove('bg-surface-container-lowest', 'text-on-surface');
         btn.classList.add(cfg.bg, cfg.text, 'shadow-md');
         const sub = btn.querySelector('.sub-text');
         if (sub) {
           sub.classList.remove('text-secondary');
           sub.classList.add(cfg.sub);
+        }
+        const pts = btn.querySelector('.points-badge');
+        if (pts) {
+          pts.classList.remove('text-secondary');
+          pts.classList.add(cfg.sub);
         }
         const indicator = btn.querySelector('.status-indicator');
         if (indicator) {
@@ -868,19 +936,32 @@
         }
       });
 
-      // --- RESULTS CALCULATION & RENDERING ---
+      // --- RESULTS CALCULATION & RENDERING (5-Point Likert Scale) ---
+      const POINT_MAP = {
+        agree: 2,
+        somewhat_agree: 1,
+        neutral: 0,
+        somewhat_disagree: -1,
+        disagree: -2,
+        // Legacy 3-choice fallback:
+        yes: 2,
+        no: -2
+      };
+
       function calculateScores() {
         const total = activeQuestions.length;
-        let totalScoreSum = 0;
+        let totalPoints = 0;
 
         activeQuestions.forEach(q => {
           const ans = userAnswers[q.id];
-          if (ans === 'yes') totalScoreSum += 1.0;
-          else if (ans === 'neutral') totalScoreSum += 0.5;
-          else totalScoreSum += 0.0;
+          const pt = POINT_MAP[ans] ?? 0;
+          totalPoints += pt;
         });
 
-        const overallLevel = Math.round((totalScoreSum / total) * 100);
+        // Normalized score from [-2N, +2N] to [0, 100]
+        const maxPoints = 2 * total;
+        const normalized = (totalPoints + maxPoints) / (2 * maxPoints);
+        const overallLevel = Math.round(normalized * 100);
 
         // Parameters analysis: (-100% to +100%)
         const paramScores = {};
@@ -890,14 +971,13 @@
             paramScores[cat] = 0;
             return;
           }
-          let yesCount = 0;
-          let noCount = 0;
+          let catPoints = 0;
           catQuestions.forEach(q => {
             const ans = userAnswers[q.id];
-            if (ans === 'yes') yesCount++;
-            else if (ans === 'no') noCount++;
+            const pt = POINT_MAP[ans] ?? 0;
+            catPoints += pt;
           });
-          const score = Math.round(((yesCount - noCount) / catQuestions.length) * 100);
+          const score = Math.round((catPoints / (2 * catQuestions.length)) * 100);
           paramScores[cat] = score;
         });
 
@@ -986,14 +1066,22 @@
         }
 
         // Save diagnosis log to Database (Firebase / LocalStorage)
+        const answerPoints = {};
+        Object.entries(userAnswers).forEach(([qid, ans]) => {
+          answerPoints[qid] = POINT_MAP[ans] ?? 0;
+        });
+
         saveDiagnosisLog({
           userName,
           mode: currentMode,
+          version: 2,
+          scale: 5,
           totalQuestions: activeQuestions.length,
           overallLevel,
           verdict: isOtokomae ? '男前' : '女々しい',
           paramScores,
           answers: userAnswers,
+          answerPoints: answerPoints,
           userAgent: navigator.userAgent
         });
 
