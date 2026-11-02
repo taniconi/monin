@@ -1,18 +1,12 @@
 // ============================================================
 // 今井くん診断 - Firebase設定ファイル
 // ============================================================
-// Firebaseコンソール (https://console.firebase.google.com/) で
-// プロジェクトを作成し、ウェブアプリを追加した際に表示される
-// firebaseConfig の値を以下に貼り付けてください。
-//
-// ※ admin.html の画面上から直接貼り付けて保存することも可能です。
 
 window.FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyAPjk7ujOl-YiIGtE-E49RNzoFdOqHVf_Y",
+  authDomain: "monin-7dc46.firebaseapp.com",
+  projectId: "monin-7dc46",
+  storageBucket: "monin-7dc46.firebasestorage.app",
+  messagingSenderId: "974383340147",
+  appId: "1:974383340147:web:11ac622360fcb3a1d66806"
 };
-
