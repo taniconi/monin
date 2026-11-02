@@ -212,38 +212,38 @@
 
         <!-- Mode Selection Cards -->
         <div class="grid grid-cols-1 gap-space-xs mb-space-md" id="mode-selector-group">
-          <!-- Quick Mode (30 questions) -->
-          <div id="mode-quick" class="mode-card cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-lowest border-outline-variant/40 hover:border-primary-container/40 flex items-center justify-between gap-space-sm" data-mode="quick">
-            <div class="flex items-center gap-space-sm">
-              <div class="mode-radio-circle w-5 h-5 rounded-full border border-outline-variant flex items-center justify-center transition-colors">
-                <div class="mode-radio-dot w-2.5 h-2.5 rounded-full bg-primary-container hidden"></div>
-              </div>
-              <div class="flex flex-col text-left">
-                <div class="flex items-center gap-space-xs">
-                  <span class="font-label-lg text-label-lg font-semibold text-primary">クイック診断</span>
-                  <span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm bg-surface-container-high text-secondary">30問</span>
-                </div>
-                <span class="font-body-sm text-body-sm text-on-surface-variant text-[12px]">約3分・手軽に傾向を把握</span>
-              </div>
-            </div>
-            <span class="material-symbols-outlined text-secondary text-xl">bolt</span>
-          </div>
-
-          <!-- Full Mode (85 questions) - Selected by default -->
-          <div id="mode-full" class="mode-card is-selected cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-low border-primary-container shadow-sm flex items-center justify-between gap-space-sm" data-mode="full">
+          <!-- Quick Mode (30 questions) - Selected by default -->
+          <div id="mode-quick" class="mode-card is-selected cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-low border-primary-container shadow-sm flex items-center justify-between gap-space-sm" data-mode="quick">
             <div class="flex items-center gap-space-sm">
               <div class="mode-radio-circle w-5 h-5 rounded-full border border-primary-container flex items-center justify-center transition-colors">
                 <div class="mode-radio-dot w-2.5 h-2.5 rounded-full bg-primary-container"></div>
               </div>
               <div class="flex flex-col text-left">
                 <div class="flex items-center gap-space-xs">
+                  <span class="font-label-lg text-label-lg font-semibold text-primary">クイック診断</span>
+                  <span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm bg-primary-fixed text-on-primary-fixed font-semibold">30問</span>
+                </div>
+                <span class="font-body-sm text-body-sm text-on-surface-variant text-[12px]">約3分・手軽に傾向を把握</span>
+              </div>
+            </div>
+            <span class="material-symbols-outlined text-primary-container text-xl">bolt</span>
+          </div>
+
+          <!-- Full Mode (85 questions) -->
+          <div id="mode-full" class="mode-card cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-lowest border-outline-variant/40 hover:border-primary-container/40 flex items-center justify-between gap-space-sm" data-mode="full">
+            <div class="flex items-center gap-space-sm">
+              <div class="mode-radio-circle w-5 h-5 rounded-full border border-outline-variant flex items-center justify-center transition-colors">
+                <div class="mode-radio-dot w-2.5 h-2.5 rounded-full bg-primary-container hidden"></div>
+              </div>
+              <div class="flex flex-col text-left">
+                <div class="flex items-center gap-space-xs">
                   <span class="font-label-lg text-label-lg font-semibold text-primary">精密フル診断</span>
-                  <span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm bg-primary-fixed text-on-primary-fixed font-semibold">85問</span>
+                  <span class="px-1.5 py-0.2 rounded text-[10px] font-label-sm bg-surface-container-high text-secondary">85問</span>
                 </div>
                 <span class="font-body-sm text-body-sm text-on-surface-variant text-[12px]">約8分・8つの行動傾向を完全解明</span>
               </div>
             </div>
-            <span class="material-symbols-outlined text-primary-container text-xl">psychology</span>
+            <span class="material-symbols-outlined text-secondary text-xl">psychology</span>
           </div>
         </div>
 
@@ -275,7 +275,7 @@
 
         <!-- Start Action Button -->
         <div class="flex flex-col gap-space-sm">
-          <button class="w-full h-12 rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs shadow-md transition-all duration-200 active:scale-[0.98]" id="start-btn" type="button">
+          <button class="w-full h-12 rounded-lg bg-surface-container-high text-outline font-label-lg text-label-lg flex items-center justify-center gap-space-xs cursor-not-allowed transition-all duration-200" id="start-btn" type="button" disabled>
             <span>診断を開始する</span>
             <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
@@ -600,7 +600,7 @@
       }
 
       // --- STATE ---
-      let currentMode = 'full'; // 'quick' or 'full'
+      let currentMode = 'quick'; // 'quick' or 'full'
       let userName = 'もにん';
       let activeQuestions = [];
       let currentIndex = 0;
@@ -679,12 +679,17 @@
 
       // --- NAME INPUT ---
       function updateNameState() {
+        const val = inputName.value.trim();
         const len = inputName.value.length;
         charCounter.textContent = `${len} / 15`;
-        if (len > 0) {
+        if (val.length > 0) {
+          startBtn.disabled = false;
+          startBtn.className = 'w-full h-12 rounded-lg bg-primary-container text-on-primary font-label-lg text-label-lg flex items-center justify-center gap-space-xs shadow-md transition-all duration-200 active:scale-[0.98] cursor-pointer';
           clearBtn.classList.remove('opacity-0', 'pointer-events-none');
           clearBtn.classList.add('opacity-100');
         } else {
+          startBtn.disabled = true;
+          startBtn.className = 'w-full h-12 rounded-lg bg-surface-container-high text-outline font-label-lg text-label-lg flex items-center justify-center gap-space-xs cursor-not-allowed transition-all duration-200';
           clearBtn.classList.add('opacity-0', 'pointer-events-none');
           clearBtn.classList.remove('opacity-100');
         }
@@ -710,8 +715,10 @@
 
       // Start Diagnosis
       startBtn.addEventListener('click', () => {
+        if (startBtn.disabled) return;
         const nameVal = inputName.value.trim();
-        userName = nameVal.length > 0 ? nameVal : 'もにん';
+        if (!nameVal) return;
+        userName = nameVal;
         
         if (currentMode === 'quick') {
           activeQuestions = ALL_QUESTIONS.filter(q => q.isFast);
