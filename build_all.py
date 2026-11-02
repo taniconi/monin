@@ -13,7 +13,7 @@ index_html = f'''<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport">
-  <title>今井くん診断</title>
+  <title>大和男児か診断</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
@@ -171,7 +171,7 @@ index_html = f'''<!DOCTYPE html>
   <header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
     <div class="h-14 px-margin max-w-xl mx-auto flex items-center justify-between">
       <h1 id="header-app-title" class="font-headline-sm text-headline-sm text-on-surface tracking-tight text-left truncate font-semibold cursor-pointer select-none" title="トリプルタップで管理者ページへ">
-        今井くん診断
+        大和男児か診断
       </h1>
       <span id="header-mode-badge" class="hidden text-[11px] font-label-sm px-2.5 py-0.5 rounded-full bg-surface-container-high text-secondary">
         85問
@@ -191,7 +191,7 @@ index_html = f'''<!DOCTYPE html>
       <!-- Hero & Title Section -->
       <header class="flex flex-col items-center text-center mt-space-sm mb-space-lg">
         <h1 class="font-headline-xl-mobile text-headline-xl-mobile text-primary tracking-tight font-semibold mb-space-xs">
-          今井くん診断
+          大和男児か診断
         </h1>
 
         <!-- Visual Anchor Motif -->
@@ -408,11 +408,11 @@ index_html = f'''<!DOCTYPE html>
           </div>
         </div>
 
-        <!-- Primary Score Card (総合今井くんレベル) -->
+        <!-- Primary Score Card (総合大和男児レベル) -->
         <div class="relative overflow-hidden rounded-xl bg-surface-container-lowest p-space-lg shadow-sm">
           <div class="flex items-start justify-between">
             <div class="space-y-1">
-              <h3 class="font-headline-md text-headline-md text-primary">今井くんレベル</h3>
+              <h3 class="font-headline-md text-headline-md text-primary">大和男児レベル</h3>
             </div>
           </div>
 
@@ -1038,8 +1038,8 @@ index_html = f'''<!DOCTYPE html>
         const {{ overallLevel }} = calculateScores();
         const verdict = overallLevel >= 50 ? '男前' : '女々しい';
         const shareData = {{
-          title: '今井くん診断結果',
-          text: `総合今井くんレベル${{overallLevel}}%【${{verdict}}】でした。 #今井くん診断`,
+          title: '大和男児か診断結果',
+          text: `総合大和男児レベル${{overallLevel}}%【${{verdict}}】でした。 #大和男児か診断`,
           url: window.location.href
         }};
 
@@ -1086,7 +1086,7 @@ admin_html = f'''<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>今井くん診断 - 分析ダッシュボード</title>
+  <title>大和男児か診断 - 分析ダッシュボード</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
@@ -1184,7 +1184,7 @@ admin_html = f'''<!DOCTYPE html>
         <span class="material-symbols-outlined text-primary text-2xl">analytics</span>
         <div>
           <h1 class="font-headline-sm text-headline-sm text-primary font-bold tracking-tight">
-            今井くん診断 分析ダッシュボード
+            大和男児か診断 分析ダッシュボード
           </h1>
           <span class="text-[11px] text-secondary">全ユーザー回答・動向統合ログ</span>
         </div>
@@ -1250,7 +1250,7 @@ admin_html = f'''<!DOCTYPE html>
 
       <!-- 2. Avg Score -->
       <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/20 flex flex-col justify-between">
-        <span class="text-[12px] font-medium text-secondary">平均 今井くんレベル</span>
+        <span class="text-[12px] font-medium text-secondary">平均 大和男児レベル</span>
         <div class="mt-2 flex items-baseline gap-2">
           <span id="kpi-avg-score" class="font-headline-xl text-3xl font-bold text-primary">0</span>
           <span class="text-[12px] text-secondary">%</span>
@@ -1349,7 +1349,7 @@ admin_html = f'''<!DOCTYPE html>
               <th class="py-3 px-3">日時</th>
               <th class="py-3 px-3">お名前</th>
               <th class="py-3 px-3">モード</th>
-              <th class="py-3 px-3">今井くんレベル</th>
+              <th class="py-3 px-3">大和男児レベル</th>
               <th class="py-3 px-3">判定</th>
               <th class="py-3 px-3">突出パラメーター</th>
               <th class="py-3 px-3 text-right">操作</th>
@@ -1864,7 +1864,7 @@ admin_html = f'''<!DOCTYPE html>
 
         const dStr = log.createdAtStr ? new Date(log.createdAtStr).toLocaleString('ja-JP') : '---';
         const modeText = log.mode === 'quick' ? 'クイック診断 (全30問)' : '精密フル診断 (全85問)';
-        modalMetaInfo.textContent = `${{dStr}} ・ ${{modeText}} ・ 今井くんレベル ${{log.overallLevel ?? 0}}%`;
+        modalMetaInfo.textContent = `${{dStr}} ・ ${{modeText}} ・ 大和男児レベル ${{log.overallLevel ?? 0}}%`;
 
         // Param Chips
         modalParamChips.innerHTML = '';
@@ -2033,7 +2033,7 @@ admin_html = f'''<!DOCTYPE html>
           '診断日時',
           'お名前',
           '診断モード',
-          '今井くんレベル(%)',
+          '大和男児レベル(%)',
           '判定区分',
           ...CATEGORIES.map(c => `${{c}}(%)`),
           ...ALL_QUESTIONS.map(q => `Q${{q.id}}_${{q.text.replace(/[",]/g, '')}}`)
@@ -2069,7 +2069,7 @@ admin_html = f'''<!DOCTYPE html>
         const now = new Date();
         const dateStamp = now.toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
         a.href = url;
-        a.download = `imai_shindan_analytics_${{dateStamp}}.csv`;
+        a.download = `yamato_shindan_analytics_${{dateStamp}}.csv`;
         a.click();
         URL.revokeObjectURL(url);
       }});
