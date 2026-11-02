@@ -9,6 +9,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script id="tailwind-config">
     tailwind.config = {
       darkMode: "class",
@@ -156,7 +160,7 @@
   <!-- Fixed Top Header -->
   <header class="fixed top-0 w-full z-50 pt-safe bg-surface/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
     <div class="h-14 px-margin max-w-xl mx-auto flex items-center justify-between">
-      <h1 class="font-headline-sm text-headline-sm text-on-surface tracking-tight text-left truncate font-semibold">
+      <h1 id="header-app-title" class="font-headline-sm text-headline-sm text-on-surface tracking-tight text-left truncate font-semibold cursor-pointer select-none" title="トリプルタップで管理者ページへ">
         今井くん診断
       </h1>
       <span id="header-mode-badge" class="hidden text-[11px] font-label-sm px-2.5 py-0.5 rounded-full bg-surface-container-high text-secondary">
@@ -172,7 +176,6 @@
     <!-- SCREEN 1: START SCREEN (Based on figma/_3) -->
     <!-- ========================================== -->
     <section id="screen-start" class="screen-container flex flex-col w-full max-w-xl mx-auto px-margin pb-space-xl fade-in">
-      <!-- Minimal Spacing -->
       <div class="py-space-xs"></div>
 
       <!-- Hero & Title Section -->
@@ -209,11 +212,11 @@
 
         <!-- Mode Selection Cards -->
         <div class="grid grid-cols-1 gap-space-xs mb-space-md" id="mode-selector-group">
-          <!-- Quick Mode (30 questions) - Selected by default -->
-          <div id="mode-quick" class="mode-card is-selected cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-low border-primary-container shadow-sm flex items-center justify-between gap-space-sm" data-mode="quick">
+          <!-- Quick Mode (30 questions) -->
+          <div id="mode-quick" class="mode-card cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-lowest border-outline-variant/40 hover:border-primary-container/40 flex items-center justify-between gap-space-sm" data-mode="quick">
             <div class="flex items-center gap-space-sm">
-              <div class="mode-radio-circle w-5 h-5 rounded-full border border-primary-container flex items-center justify-center transition-colors">
-                <div class="mode-radio-dot w-2.5 h-2.5 rounded-full bg-primary-container"></div>
+              <div class="mode-radio-circle w-5 h-5 rounded-full border border-outline-variant flex items-center justify-center transition-colors">
+                <div class="mode-radio-dot w-2.5 h-2.5 rounded-full bg-primary-container hidden"></div>
               </div>
               <div class="flex flex-col text-left">
                 <div class="flex items-center gap-space-xs">
@@ -226,11 +229,11 @@
             <span class="material-symbols-outlined text-secondary text-xl">bolt</span>
           </div>
 
-          <!-- Full Mode (85 questions) -->
-          <div id="mode-full" class="mode-card cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-lowest border-outline-variant/40 hover:border-primary-container/40 flex items-center justify-between gap-space-sm" data-mode="full">
+          <!-- Full Mode (85 questions) - Selected by default -->
+          <div id="mode-full" class="mode-card is-selected cursor-pointer p-space-sm rounded-lg border transition-all duration-200 bg-surface-container-low border-primary-container shadow-sm flex items-center justify-between gap-space-sm" data-mode="full">
             <div class="flex items-center gap-space-sm">
-              <div class="mode-radio-circle w-5 h-5 rounded-full border border-outline-variant flex items-center justify-center transition-colors">
-                <div class="mode-radio-dot w-2.5 h-2.5 rounded-full bg-primary-container hidden"></div>
+              <div class="mode-radio-circle w-5 h-5 rounded-full border border-primary-container flex items-center justify-center transition-colors">
+                <div class="mode-radio-dot w-2.5 h-2.5 rounded-full bg-primary-container"></div>
               </div>
               <div class="flex flex-col text-left">
                 <div class="flex items-center gap-space-xs">
@@ -278,11 +281,6 @@
           </button>
         </div>
       </section>
-
-      <!-- Trust Note / Disclaimer -->
-      <div class="text-center pt-2 text-outline font-label-sm text-[12px]">
-        全回答は端末内のみで安全に処理されます
-      </div>
     </section>
 
     <!-- ============================================== -->
@@ -463,9 +461,7 @@
           </div>
 
           <!-- Parameter Horizontal Bar Meters (Populated dynamically) -->
-          <div id="parameters-container" class="space-y-space-md pt-space-xs">
-            <!-- Dynamically rendered bars -->
-          </div>
+          <div id="parameters-container" class="space-y-space-md pt-space-xs"></div>
         </div>
 
         <!-- Type Summary & In-Depth Text Card -->
@@ -477,9 +473,7 @@
           <div class="space-y-space-sm">
             <div class="p-space-sm rounded-lg bg-surface-container-low space-y-1">
               <span id="profile-headline" class="font-label-sm text-label-sm text-secondary uppercase font-semibold">コア・アドバンテージ</span>
-              <p id="profile-description" class="font-body-md text-body-md text-on-surface leading-relaxed">
-                <!-- Dynamically generated explanation -->
-              </p>
+              <p id="profile-description" class="font-body-md text-body-md text-on-surface leading-relaxed"></p>
             </div>
           </div>
         </div>
@@ -530,8 +524,83 @@
         'ナショナリズム': '自国の伝統と秩序を守り、規律と誇りを最優先する防衛意識'
       };
 
+      // --- FIREBASE INITIALIZATION ---
+      function getFirebaseConfig() {
+        try {
+          const saved = localStorage.getItem('imai_firebase_config');
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId) {
+          return window.FIREBASE_CONFIG;
+        }
+        return null;
+      }
+
+      let firestoreDb = null;
+      try {
+        const cfg = getFirebaseConfig();
+        if (cfg && cfg.projectId && typeof firebase !== 'undefined') {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(cfg);
+          }
+          firestoreDb = firebase.firestore();
+        }
+      } catch (e) {
+        console.warn('Firebase init warning:', e);
+      }
+
+      async function saveDiagnosisLog(record) {
+        const nowIso = new Date().toISOString();
+        const dataToSave = {
+          ...record,
+          createdAtStr: nowIso
+        };
+
+        // 1. Always save in local storage as backup
+        try {
+          const logs = JSON.parse(localStorage.getItem('imai_diagnoses_log') || '[]');
+          logs.unshift({ ...dataToSave, id: 'local_' + Date.now() });
+          localStorage.setItem('imai_diagnoses_log', JSON.stringify(logs.slice(0, 500)));
+        } catch (e) {
+          console.error('LocalStorage write error:', e);
+        }
+
+        // 2. Save in Firestore if available
+        if (firestoreDb) {
+          try {
+            await firestoreDb.collection('diagnoses').add({
+              ...dataToSave,
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('Saved to Firestore successfully');
+          } catch (err) {
+            console.error('Firestore save failed:', err);
+          }
+        }
+      }
+
+      // Secret Admin Access (Triple click title or #admin hash)
+      if (window.location.hash === '#admin') {
+        window.location.href = 'admin.html';
+      }
+      let titleClicks = 0;
+      let titleClickTimer = null;
+      const appTitleEl = document.getElementById('header-app-title');
+      if (appTitleEl) {
+        appTitleEl.addEventListener('click', () => {
+          titleClicks++;
+          clearTimeout(titleClickTimer);
+          if (titleClicks >= 3) {
+            titleClicks = 0;
+            window.location.href = 'admin.html';
+          } else {
+            titleClickTimer = setTimeout(() => { titleClicks = 0; }, 800);
+          }
+        });
+      }
+
       // --- STATE ---
-      let currentMode = 'quick'; // 'quick' or 'full'
+      let currentMode = 'full'; // 'quick' or 'full'
       let userName = 'もにん';
       let activeQuestions = [];
       let currentIndex = 0;
@@ -849,7 +918,6 @@
         }
 
         // Render Parameters Bars
-        // Order categories by score descending
         const sortedCats = [...CATEGORIES].sort((a, b) => paramScores[b] - paramScores[a]);
 
         parametersContainer.innerHTML = '';
@@ -910,11 +978,22 @@
           profileDescription.textContent = `組織の同調圧力や厳しい上下関係に対して一定の心理的距離を保ち、自己の感性やバランス感覚を尊重するプロファイルです。${top1}（${top1Val >= 0 ? '+' : ''}${top1Val}%）に見られるように、理不尽な要求に屈しない柔軟な思考と人間らしい共感力を兼ね備えています。`;
         }
 
+        // Save diagnosis log to Database (Firebase / LocalStorage)
+        saveDiagnosisLog({
+          userName,
+          mode: currentMode,
+          totalQuestions: activeQuestions.length,
+          overallLevel,
+          verdict: isOtokomae ? '男前' : '女々しい',
+          paramScores,
+          answers: userAnswers,
+          userAgent: navigator.userAgent
+        });
+
         // Show screen
         showScreen(screenResult);
 
         // Circular Score Gauge Animation
-        // Circumference is 251.2
         const targetOffset = 251.2 * (1 - (overallLevel / 100));
         scoreCircleBar.style.strokeDashoffset = '251.2';
         setTimeout(() => {

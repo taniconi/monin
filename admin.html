@@ -491,19 +491,55 @@
 
             // Listen to real-time changes
             if (unsubscribeFirestore) unsubscribeFirestore();
-            unsubscribeFirestore = firestoreDb.collection('diagnoses')
-              .orderBy('createdAt', 'desc')
-              .onSnapshot(snapshot => {
-                const cloudLogs = [];
-                snapshot.forEach(doc => {
-                  cloudLogs.push({ id: doc.id, ...doc.data() });
-                });
-                allLogs = cloudLogs;
-                renderDashboard();
-              }, err => {
-                console.error('Firestore listener error:', err);
-                loadLocalLogsFallback();
+
+            function handleSnapshot(snapshot) {
+              const cloudLogs = [];
+              snapshot.forEach(doc => {
+                cloudLogs.push({ id: doc.id, ...doc.data() });
               });
+              // Sort newest first
+              cloudLogs.sort((a, b) => {
+                const timeA = a.createdAtStr ? new Date(a.createdAtStr).getTime() : 0;
+                const timeB = b.createdAtStr ? new Date(b.createdAtStr).getTime() : 0;
+                return timeB - timeA;
+              });
+              allLogs = cloudLogs;
+              renderDashboard();
+            }
+
+            function handleFirestoreError(err) {
+              console.error('Firestore listener error:', err);
+              dbStatusPill.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-red-100 text-red-800 border border-red-300';
+              dbStatusPill.innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500"></span><span>Firestore未作成または権限エラー</span>';
+
+              firebasePromptBanner.classList.remove('hidden');
+              firebasePromptBanner.className = 'rounded-xl p-4 bg-red-50 border border-red-200 text-red-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm';
+              firebasePromptBanner.innerHTML = `
+                <div class="flex items-start gap-3">
+                  <span class="material-symbols-outlined text-red-600 text-2xl mt-0.5">warning</span>
+                  <div class="space-y-0.5">
+                    <p class="font-semibold text-[14px]">Cloud Firestore データベースの作成が必要です</p>
+                    <p class="text-[12px] text-red-700">Firebase Consoleの左メニュー「Firestore Database」から「データベースの作成（テストモードで開始）」を行ってください。</p>
+                  </div>
+                </div>
+                <a href="https://console.firebase.google.com/project/${cfg.projectId}/firestore" target="_blank" class="self-start sm:self-auto px-3.5 py-1.5 rounded-lg bg-red-700 text-white font-medium text-[12px] hover:bg-red-800 transition-colors shrink-0">
+                  Firestoreを作成する
+                </a>
+              `;
+              loadLocalLogsFallback();
+            }
+
+            const col = firestoreDb.collection('diagnoses');
+            try {
+              unsubscribeFirestore = col.orderBy('createdAt', 'desc').onSnapshot(
+                handleSnapshot,
+                () => {
+                  unsubscribeFirestore = col.onSnapshot(handleSnapshot, handleFirestoreError);
+                }
+              );
+            } catch (e) {
+              unsubscribeFirestore = col.onSnapshot(handleSnapshot, handleFirestoreError);
+            }
 
             return true;
           } catch (e) {
