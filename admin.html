@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="ja" class="h-full">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>今井くん診断 - 分析ダッシュボード</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface-tint": "#516071",
+            "tertiary-container": "#433628",
+            "surface-container-low": "#f2f4f6",
+            "on-tertiary-fixed": "#241a0d",
+            "secondary-fixed-dim": "#b7c8db",
+            "on-secondary-fixed-variant": "#384858",
+            "on-background": "#191c1e",
+            "on-error-container": "#93000a",
+            "surface-container-high": "#e7e8ea",
+            "inverse-surface": "#2e3132",
+            "on-primary-container": "#94a4b7",
+            "tertiary": "#2c2114",
+            "inverse-on-surface": "#f0f1f3",
+            "on-primary-fixed-variant": "#394859",
+            "on-tertiary-fixed-variant": "#524435",
+            "on-secondary": "#ffffff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-highest": "#e1e2e4",
+            "on-surface-variant": "#44474c",
+            "on-tertiary-container": "#b19f8c",
+            "inverse-primary": "#b8c8dc",
+            "primary-container": "#2b3a4a",
+            "surface-variant": "#e1e2e4",
+            "surface-container": "#edeef0",
+            "primary": "#152434",
+            "surface": "#f8f9fb",
+            "outline": "#74777c",
+            "on-tertiary": "#ffffff",
+            "primary-fixed-dim": "#b8c8dc",
+            "surface-dim": "#d9dadc",
+            "on-surface": "#191c1e",
+            "secondary": "#4f6070",
+            "tertiary-fixed": "#f4dfca",
+            "error-container": "#ffdad6",
+            "on-secondary-fixed": "#0b1d2b",
+            "outline-variant": "#c4c6cc",
+            "secondary-container": "#d3e4f8",
+            "tertiary-fixed-dim": "#d7c3af",
+            "secondary-fixed": "#d3e4f8",
+            "primary-fixed": "#d4e4f9",
+            "background": "#f8f9fb",
+            "on-error": "#ffffff",
+            "on-secondary-container": "#556677",
+            "surface-bright": "#f8f9fb",
+            "on-primary": "#ffffff",
+            "error": "#ba1a1a",
+            "on-primary-fixed": "#0d1d2c"
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          fontFamily: {
+            "headline-sm": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "body-sm": ["Noto Sans", "sans-serif"],
+            "label-lg": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "headline-xl": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "headline-lg": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "headline-xl-mobile": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "label-md": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "headline-lg-mobile": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "label-sm": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"],
+            "body-lg": ["Noto Sans", "sans-serif"],
+            "body-md": ["Noto Sans", "sans-serif"],
+            "headline-md": ["Plus Jakarta Sans", "Noto Sans", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased min-h-screen flex flex-col">
+
+  <!-- Top Navigation Header -->
+  <header class="sticky top-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-surface-container shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined text-primary text-2xl">analytics</span>
+        <div>
+          <h1 class="font-headline-sm text-headline-sm text-primary font-bold tracking-tight">
+            今井くん診断 分析ダッシュボード
+          </h1>
+          <span class="text-[11px] text-secondary">全ユーザー回答・動向統合ログ</span>
+        </div>
+      </div>
+
+      <!-- Header Actions -->
+      <div class="flex items-center gap-2.5">
+        <!-- Live Status Pill -->
+        <div id="db-status-pill" class="flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-amber-100 text-amber-800 border border-amber-300">
+          <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+          <span id="db-status-text">ローカル保存中</span>
+        </div>
+
+        <!-- Firebase Config Button -->
+        <button id="open-config-btn" class="h-9 px-3 rounded-lg bg-surface-container hover:bg-surface-container-high text-on-surface text-[13px] font-medium flex items-center gap-1.5 transition-colors" type="button">
+          <span class="material-symbols-outlined text-[18px] text-secondary">settings</span>
+          <span class="hidden sm:inline">Firebase設定</span>
+        </button>
+
+        <!-- CSV Export Button -->
+        <button id="export-csv-btn" class="h-9 px-3.5 rounded-lg bg-primary-container text-on-primary text-[13px] font-medium flex items-center gap-1.5 shadow-sm hover:opacity-95 active:scale-95 transition-all" type="button">
+          <span class="material-symbols-outlined text-[18px]">download</span>
+          <span>CSVエクスポート</span>
+        </button>
+
+        <!-- Back to Diagnosis Link -->
+        <a href="index.html" class="h-9 px-3 rounded-lg bg-surface-container-lowest border border-outline-variant/40 hover:bg-surface-container text-secondary text-[13px] font-medium flex items-center gap-1 transition-colors" title="診断ページへ">
+          <span class="material-symbols-outlined text-[18px]">open_in_new</span>
+          <span class="hidden md:inline">診断画面</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- Firebase Connection Banner (shown if not configured) -->
+    <div id="firebase-prompt-banner" class="rounded-xl p-4 bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+      <div class="flex items-start gap-3">
+        <span class="material-symbols-outlined text-amber-600 text-2xl mt-0.5">cloud_off</span>
+        <div class="space-y-0.5">
+          <p class="font-semibold text-[14px]">Firebase未接続（現在は端末内ローカルデータを表示中）</p>
+          <p class="text-[12px] text-amber-700">無料のFirebase (Firestore) を連携すると、他人のスマホや全端末からの回答が自動でリアルタイム集計されます。</p>
+        </div>
+      </div>
+      <button id="banner-config-btn" class="self-start sm:self-auto px-3.5 py-1.5 rounded-lg bg-amber-700 text-white font-medium text-[12px] hover:bg-amber-800 transition-colors shrink-0">
+        1分で接続設定する
+      </button>
+    </div>
+
+    <!-- KPI Summary Metrics (4 Cards) -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- 1. Total Submissions -->
+      <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+        <span class="text-[12px] font-medium text-secondary">総診断数</span>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi-total" class="font-headline-xl text-3xl font-bold text-primary">0</span>
+          <span class="text-[12px] text-secondary">件</span>
+        </div>
+        <span id="kpi-recent-time" class="text-[11px] text-outline mt-1 truncate">最終更新: なし</span>
+      </div>
+
+      <!-- 2. Avg Score -->
+      <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+        <span class="text-[12px] font-medium text-secondary">平均 今井くんレベル</span>
+        <div class="mt-2 flex items-baseline gap-2">
+          <span id="kpi-avg-score" class="font-headline-xl text-3xl font-bold text-primary">0</span>
+          <span class="text-[12px] text-secondary">%</span>
+        </div>
+        <div class="w-full bg-surface-container h-1.5 rounded-full mt-2 overflow-hidden">
+          <div id="kpi-avg-bar" class="h-full bg-primary-container rounded-full" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- 3. Verdict Distribution -->
+      <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+        <span class="text-[12px] font-medium text-secondary">判定分布</span>
+        <div class="mt-1 flex items-center justify-between text-[13px]">
+          <span class="text-primary font-semibold">男前: <span id="kpi-otokomae-count">0</span>件 (<span id="kpi-otokomae-pct">0</span>%)</span>
+          <span class="text-secondary font-semibold">女々しい: <span id="kpi-memeshii-count">0</span>件</span>
+        </div>
+        <div class="w-full bg-surface-container h-2 rounded-full mt-2 overflow-hidden flex">
+          <div id="kpi-otokomae-bar" class="h-full bg-primary" style="width: 0%;"></div>
+          <div id="kpi-memeshii-bar" class="h-full bg-secondary" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <!-- 4. Mode Ratio -->
+      <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/20 flex flex-col justify-between">
+        <span class="text-[12px] font-medium text-secondary">診断モード比率</span>
+        <div class="mt-1 flex items-center justify-between text-[13px]">
+          <span class="text-primary font-semibold">フル: <span id="kpi-mode-full-count">0</span></span>
+          <span class="text-secondary font-semibold">クイック: <span id="kpi-mode-quick-count">0</span></span>
+        </div>
+        <div class="w-full bg-surface-container h-2 rounded-full mt-2 overflow-hidden flex">
+          <div id="kpi-mode-full-bar" class="h-full bg-primary-container" style="width: 0%;"></div>
+          <div id="kpi-mode-quick-bar" class="h-full bg-surface-container-highest" style="width: 100%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parameter Population Averages (8 Dimensions) -->
+    <div class="bg-surface-container-lowest p-6 rounded-xl shadow-sm border border-outline-variant/20 space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-[22px]">bar_chart</span>
+          <h2 class="font-headline-sm text-headline-sm text-primary font-bold">全回答者 パラメーター平均値</h2>
+        </div>
+        <span class="text-[12px] text-secondary">中央0%基準（右: 肯定 / 左: 否定）</span>
+      </div>
+
+      <div id="global-param-meters" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 pt-2">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <!-- Submissions Table Card -->
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden space-y-4 p-5">
+      <!-- Table Filter Bar -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-surface-container">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-[20px]">table_rows</span>
+          <h3 class="font-headline-sm text-[16px] text-primary font-bold">回答ログ一覧</h3>
+          <span id="filtered-count-badge" class="px-2 py-0.5 rounded-full text-[11px] bg-surface-container text-secondary font-medium">0件</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <!-- Search Input -->
+          <div class="relative flex items-center">
+            <span class="material-symbols-outlined absolute left-2.5 text-secondary text-[18px]">search</span>
+            <input id="search-input" type="text" placeholder="名前を検索..." class="h-9 pl-8 pr-3 rounded-lg bg-surface-container-low text-[13px] text-primary placeholder:text-outline outline-none focus:ring-1 focus:ring-primary w-40 sm:w-56">
+          </div>
+
+          <!-- Verdict Filter -->
+          <select id="verdict-filter" class="h-9 px-3 rounded-lg bg-surface-container-low text-[13px] text-primary outline-none">
+            <option value="all">判定: すべて</option>
+            <option value="男前">男前 のみ</option>
+            <option value="女々しい">女々しい のみ</option>
+          </select>
+
+          <!-- Mode Filter -->
+          <select id="mode-filter" class="h-9 px-3 rounded-lg bg-surface-container-low text-[13px] text-primary outline-none">
+            <option value="all">モード: すべて</option>
+            <option value="full">精密フル (85問)</option>
+            <option value="quick">クイック (30問)</option>
+          </select>
+
+          <!-- Clear Data Button -->
+          <button id="clear-local-btn" class="h-9 px-2.5 rounded-lg text-outline hover:text-error text-[12px] flex items-center gap-1 transition-colors" title="ローカルログを消去">
+            <span class="material-symbols-outlined text-[16px]">delete</span>
+            <span class="hidden lg:inline">クリア</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Container -->
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-[13px]">
+          <thead>
+            <tr class="border-b border-surface-container text-secondary font-medium">
+              <th class="py-3 px-3">日時</th>
+              <th class="py-3 px-3">お名前</th>
+              <th class="py-3 px-3">モード</th>
+              <th class="py-3 px-3">今井くんレベル</th>
+              <th class="py-3 px-3">判定</th>
+              <th class="py-3 px-3">突出パラメーター</th>
+              <th class="py-3 px-3 text-right">操作</th>
+            </tr>
+          </thead>
+          <tbody id="logs-tbody" class="divide-y divide-surface-container">
+            <tr>
+              <td colspan="7" class="py-8 text-center text-secondary">
+                ログを読み込み中...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ========================================== -->
+  <!-- MODAL 1: ANSWER DETAIL MODAL -->
+  <!-- ========================================== -->
+  <div id="detail-modal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border border-outline-variant/30 animate-in fade-in zoom-in-95 duration-200">
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-surface-container flex items-center justify-between bg-surface-container-lowest">
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 id="modal-user-name" class="font-headline-sm text-lg font-bold text-primary">ユーザー名</h3>
+            <span id="modal-verdict-badge" class="px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-primary text-white">男前</span>
+          </div>
+          <span id="modal-meta-info" class="text-[12px] text-secondary">2026/11/02 23:00 ・ フル診断 (85問) ・ レベル 78%</span>
+        </div>
+        <button id="close-modal-btn" class="p-1.5 rounded-full text-secondary hover:text-primary hover:bg-surface-container transition-colors">
+          <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-5 overflow-y-auto space-y-6 flex-1 bg-surface">
+        <!-- User Parameters Summary -->
+        <div class="bg-surface-container-lowest p-4 rounded-xl border border-surface-container space-y-3">
+          <h4 class="text-[13px] font-bold text-primary flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-secondary">insights</span>
+            <span>パラメーター獲得スコア</span>
+          </h4>
+          <div id="modal-param-chips" class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[12px]"></div>
+        </div>
+
+        <!-- All Questions Breakdown -->
+        <div class="space-y-3">
+          <h4 class="text-[13px] font-bold text-primary flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-secondary">fact_check</span>
+            <span>全問の回答詳細</span>
+          </h4>
+          <div id="modal-answers-list" class="space-y-2">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-surface-container bg-surface-container-lowest flex justify-end">
+        <button id="modal-close-action-btn" class="px-4 py-2 rounded-lg bg-surface-container text-on-surface font-medium text-[13px] hover:bg-surface-container-high transition-colors">
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- MODAL 2: FIREBASE SETTINGS MODAL -->
+  <!-- ========================================== -->
+  <div id="config-modal" class="fixed inset-0 z-50 hidden bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-surface-container-lowest rounded-2xl shadow-xl w-full max-w-xl max-h-[90vh] flex flex-col overflow-hidden border border-outline-variant/30">
+      <div class="p-5 border-b border-surface-container flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-primary text-xl">settings</span>
+          <h3 class="font-headline-sm text-base font-bold text-primary">Firebase接続設定</h3>
+        </div>
+        <button id="close-config-modal-btn" class="p-1 rounded-full text-secondary hover:text-primary transition-colors">
+          <span class="material-symbols-outlined text-2xl">close</span>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-[13px]">
+        <div class="p-3.5 rounded-lg bg-surface-container-low text-on-surface space-y-1.5">
+          <p class="font-semibold text-primary">💡 設定手順（所要時間：約2分・無料）</p>
+          <ol class="list-decimal list-inside space-y-1 text-secondary text-[12px]">
+            <li><a href="https://console.firebase.google.com/" target="_blank" class="text-blue-600 underline font-medium">Firebase Console</a> でプロジェクトを無料作成</li>
+            <li>メニューの「Firestore Database」を作成（「テストモードで開始」を選択）</li>
+            <li>「プロジェクト設定」→「ウェブアプリを追加」し、表示された <code class="bg-surface-container px-1 py-0.5 rounded font-mono">firebaseConfig</code> をコピーして下枠に貼り付けてください。</li>
+          </ol>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="font-medium text-primary flex items-center justify-between" for="config-paste-area">
+            <span>firebaseConfig を貼り付け</span>
+            <span class="text-[11px] text-secondary">JSONまたはコードスニペット対応</span>
+          </label>
+          <textarea id="config-paste-area" rows="8" placeholder='const firebaseConfig = {
+  apiKey: "AIzaSy...",
+  authDomain: "your-app.firebaseapp.com",
+  projectId: "your-app",
+  storageBucket: "your-app.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:12345:web:abcdef"
+};' class="w-full p-3 rounded-lg font-mono text-[11px] bg-surface-container-low text-primary border border-outline-variant/40 outline-none focus:ring-1 focus:ring-primary"></textarea>
+        </div>
+
+        <div id="config-feedback" class="hidden text-[12px] p-2.5 rounded-lg"></div>
+      </div>
+
+      <div class="p-4 border-t border-surface-container bg-surface-container-lowest flex items-center justify-between">
+        <button id="reset-config-btn" class="text-secondary hover:text-error text-[12px] font-medium transition-colors">
+          設定をリセット
+        </button>
+        <div class="flex items-center gap-2">
+          <button id="cancel-config-btn" class="px-3.5 py-2 rounded-lg bg-surface-container text-secondary text-[13px] font-medium hover:bg-surface-container-high">
+            キャンセル
+          </button>
+          <button id="save-config-btn" class="px-4 py-2 rounded-lg bg-primary text-on-primary text-[13px] font-medium shadow-sm hover:opacity-95">
+            保存して接続
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Script -->
+  <script>
+    (function() {
+      const ALL_QUESTIONS = [{"id": 1, "text": "妥協してFランに進学するくらいなら、何浪してでも高い目標に向けて死に物狂いで勉強すべきである", "categories": ["メリトクラシー", "自己責任論", "ストイシズム"], "isFast": true}, {"id": 2, "text": "会社の飲み会や私的な付き合いを断る社員を重用すべきではない", "categories": ["マッチョイズム", "体育会的権威主義"], "isFast": true}, {"id": 3, "text": "総合型選抜や推薦入試には、基礎学力を測るためのテストを必須化すべきである", "categories": ["メリトクラシー"], "isFast": false}, {"id": 4, "text": "大学進学後に明確な目標も持たずモラトリアムを過ごす者は、社会の寄生虫である", "categories": ["メリトクラシー", "自己責任論", "優生思想", "ストイシズム"], "isFast": false}, {"id": 5, "text": "障害を抱えていることは恥である", "categories": ["優生思想", "ルッキズム"], "isFast": false}, {"id": 6, "text": "男たるもの、勝負事や窮地から女々しい言い訳を並べて逃げ出してはならない", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": true}, {"id": 7, "text": "人間や学校の価値は、情緒的な肩書きではなく客観的な偏差値や数値の実績で判断されるべきである", "categories": ["メリトクラシー"], "isFast": true}, {"id": 8, "text": "同性愛は許容されるべきではない", "categories": ["マッチョイズム", "体育会的権威主義", "優生思想", "ナショナリズム"], "isFast": true}, {"id": 9, "text": "上司の意向は絶対である", "categories": ["体育会的権威主義"], "isFast": true}, {"id": 10, "text": "勉学を怠った者が良いキャリアを築くべきではない", "categories": ["メリトクラシー", "自己責任論"], "isFast": false}, {"id": 11, "text": "残業を嫌がる若手には重要業務を任せるべきではない", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 12, "text": "貧困に陥るのは当人の努力不足である", "categories": ["メリトクラシー", "自己責任論"], "isFast": true}, {"id": 13, "text": "体調管理も仕事の一環であり、体調を崩すのは自己責任である", "categories": ["自己責任論", "体育会的権威主義", "ストイシズム"], "isFast": true}, {"id": 14, "text": "知能・生産性・遺伝的形質が劣る者は子孫を残すべきではなく、個人の生殖は管理されるべきである", "categories": ["メリトクラシー", "優生思想"], "isFast": true}, {"id": 15, "text": "メンタルの不調は単なる気の緩みである", "categories": ["自己責任論", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": true}, {"id": 16, "text": "性産業やポルノの利用は知性が低い者の行為である", "categories": ["メリトクラシー", "優生思想", "ストイシズム"], "isFast": false}, {"id": 17, "text": "肥満や生活習慣病の治療は、保険適用外にすべきである", "categories": ["自己責任論", "優生思想", "ストイシズム", "ルッキズム"], "isFast": true}, {"id": 18, "text": "理不尽な要求に耐え抜いてこそ、一人前の社会人になれる", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": true}, {"id": 19, "text": "契約書をその場で読んで即座に内容を理解できない人間は、社会人失格である", "categories": ["メリトクラシー", "自己責任論", "体育会的権威主義"], "isFast": false}, {"id": 20, "text": "日常的な漢字の読み書きや言葉の正確な意味を知らずに適当に使う者は、義務教育の敗北者であり無知を恥じるべきである", "categories": ["メリトクラシー", "自己責任論"], "isFast": false}, {"id": 21, "text": "受験や学問において、古文や数学などの苦手科目から逃げる者に大成はない", "categories": ["メリトクラシー", "自己責任論", "ストイシズム"], "isFast": true}, {"id": 22, "text": "親の金で大学に通いながら講義をサボり、留年や休学を繰り返す者は、自己管理ができない社会不適合者であり親不孝である", "categories": ["メリトクラシー", "自己責任論", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 23, "text": "勉強から逃げて指定校推薦に甘える行為は、学歴コンプレックスの元凶である", "categories": ["メリトクラシー", "自己責任論"], "isFast": false}, {"id": 24, "text": "読解力がない人間ほど、他人の些細な誤字脱字に噛みついて論点をそらす", "categories": ["メリトクラシー"], "isFast": false}, {"id": 25, "text": "学歴フィルターが存在するのは、企業の採用効率を考えれば至極当然である", "categories": ["メリトクラシー"], "isFast": true}, {"id": 26, "text": "男たるもの1000円カットなどで適当に済ませず、最低でも月に一度は美容院へ行って髪型を整えるべきである", "categories": ["マッチョイズム", "ストイシズム", "ルッキズム"], "isFast": false}, {"id": 27, "text": "高級車ブランドがエントリーモデルを出すべきではない", "categories": ["メリトクラシー"], "isFast": false}, {"id": 28, "text": "男磨きや身だしなみ（筋トレ・スキンケア等）を怠る男に、女性を求める資格はない（相手にされないのは当然である）", "categories": ["自己責任論", "マッチョイズム", "ストイシズム", "ルッキズム"], "isFast": true}, {"id": 29, "text": "ドライヤーやヘアアイロンを使わずに外出するのは、社会人としての身だしなみの放棄である", "categories": ["自己責任論", "体育会的権威主義", "ストイシズム", "ルッキズム"], "isFast": false}, {"id": 30, "text": "太っていることやだらしない体型は怠惰と自己管理能力の欠如の証明であり、男は標準体重と日頃の運動習慣を維持すべきである", "categories": ["自己責任論", "マッチョイズム", "ストイシズム", "ルッキズム"], "isFast": true}, {"id": 31, "text": "身長や生まれつきの体格で劣る男ほど、努力と身だしなみで外見を補う義務がある", "categories": ["自己責任論", "マッチョイズム", "ストイシズム", "ルッキズム"], "isFast": false}, {"id": 32, "text": "日本市場への中国資本参入は断固拒否すべきである", "categories": ["ナショナリズム"], "isFast": true}, {"id": 33, "text": "自転車で坂道を登るときに立って漕ぐ体力すらない男は、男らしさに欠けている", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 34, "text": "性欲は根本から排除すべきであり、中途半端な欲に振り回されてシコ寝するくらいなら寺で座禅を組んで精進すべきである", "categories": ["ストイシズム"], "isFast": true}, {"id": 35, "text": "服装のシワや毛玉を気にせず放置する人間は、社会人としての常識がない", "categories": ["自己責任論", "体育会的権威主義", "ルッキズム"], "isFast": true}, {"id": 36, "text": "軍事費は増額すべきである", "categories": ["マッチョイズム", "ナショナリズム"], "isFast": true}, {"id": 37, "text": "どんな理由があろうと、風呂に入らず不潔な状態で過ごす「風呂キャン」は人間のクズである", "categories": ["自己責任論", "体育会的権威主義", "ストイシズム", "ルッキズム"], "isFast": false}, {"id": 38, "text": "意見の対立が起きた際は、テキストチャットに逃げず音声通話や対面で白黒つけるべきである", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 39, "text": "議論や喧嘩の最中にミュートやブロックで逃げる行為は、最も女々しい敗北である", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 40, "text": "レスバを挑まれたら、一切怯まず徹底的に相手を論破すべきである", "categories": ["メリトクラシー", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": true}, {"id": 41, "text": "ネット弁慶でリアルでは何も喋れなくなる人間は、最も軽蔑されるべき存在である", "categories": ["マッチョイズム", "体育会的権威主義"], "isFast": false}, {"id": 42, "text": "集団の輪に入らず、端っこで一人冷笑してスカしている人間はコミュニティに不要である", "categories": ["体育会的権威主義"], "isFast": true}, {"id": 43, "text": "互いに愚痴や悩みを本音でぶつけ合ってこそ、本物の友情が深まる", "categories": ["マッチョイズム", "体育会的権威主義"], "isFast": false}, {"id": 44, "text": "子供を甘やかす教育は虐待と同義である", "categories": ["体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 45, "text": "挨拶を交わす程度の「よっ友」を友達と呼び、交友関係を誇るのは虚しい自己欺瞞である", "categories": ["ストイシズム"], "isFast": false}, {"id": 46, "text": "客観的なデータや根拠を示せない主張は、すべて単なる「妄想」に過ぎない", "categories": ["メリトクラシー"], "isFast": true}, {"id": 47, "text": "人の意見や言動の猿真似しかできない人間に、独自のアイデンティティはない", "categories": ["メリトクラシー", "ストイシズム"], "isFast": false}, {"id": 48, "text": "自分の感情や本能をコントロールできない者は、感情を物理的に断ち切るくらいの荒療治が必要である", "categories": ["自己責任論", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 49, "text": "女性に相手にされない現実から目を背け、二次元キャラや妄想・ヤリモクに逃げる男は救いようがない", "categories": ["自己責任論", "マッチョイズム", "ストイシズム"], "isFast": false}, {"id": 50, "text": "タバコは男のステータスである", "categories": ["マッチョイズム", "体育会的権威主義"], "isFast": false}, {"id": 51, "text": "お金で女性を買って童貞を捨てる行為は、男として虚しい妥協に過ぎない", "categories": ["マッチョイズム", "ストイシズム"], "isFast": false}, {"id": 52, "text": "男なら性癖やオカズを隠さず、堂々とオープンにできる度胸を持つべきである", "categories": ["マッチョイズム", "体育会的権威主義"], "isFast": false}, {"id": 53, "text": "高級腕時計は社会人の必携品である", "categories": ["メリトクラシー", "体育会的権威主義", "ルッキズム"], "isFast": true}, {"id": 54, "text": "中途半端に欲を残すから苦しむのであり、徹底的に悟りを開くか欲望を満たすかの二者択一である", "categories": ["ストイシズム"], "isFast": false}, {"id": 55, "text": "親に自室の生活態度やプライベートを監視されるのは、自立できていない証拠である", "categories": ["自己責任論", "ストイシズム"], "isFast": false}, {"id": 56, "text": "20代の健康な若者が生活保護を受給しようとするのは、甘え以外の何物でもない", "categories": ["自己責任論", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": true}, {"id": 57, "text": "ハローワークに頼らざるを得ない人材は、企業から見れば価値のない不良債権である", "categories": ["メリトクラシー", "自己責任論", "優生思想"], "isFast": false}, {"id": 58, "text": "就活や資格・スキルの習得を怠ったまま社会に出て非正規雇用に甘んじる者は、自己責任であり淘汰されて当然である", "categories": ["メリトクラシー", "自己責任論", "優生思想", "ストイシズム"], "isFast": true}, {"id": 59, "text": "氷河期世代の親の苦労を敬い、子は20代のうちに親以上の年収を稼ぐべきである", "categories": ["メリトクラシー", "自己責任論", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 60, "text": "出世や成功を諦めて最低限の生活で満足する生き方は、若者の堕落であり国力の衰退を招く悪である", "categories": ["メリトクラシー", "自己責任論", "マッチョイズム", "ナショナリズム", "ストイシズム"], "isFast": false}, {"id": 61, "text": "東京23区で一人暮らしをするなら、切り詰めても月20万円以上の生活費を稼ぐのが常識である", "categories": ["メリトクラシー", "自己責任論", "ストイシズム"], "isFast": false}, {"id": 62, "text": "努力も成果も出さず己の境遇の悪さを社会や環境のせいにする者は、他責にする前に自身の怠惰を呪うべきである", "categories": ["メリトクラシー", "自己責任論", "ストイシズム"], "isFast": false}, {"id": 63, "text": "仕事で成果を出せない人間が、権利やプライベートの充実ばかり主張すべきではない", "categories": ["メリトクラシー", "自己責任論", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 64, "text": "海外に出る以上、現地の差別や理不尽な待遇は実力でねじ伏せて生き残るべきである", "categories": ["メリトクラシー", "自己責任論", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 65, "text": "日本は独自の文化と礼儀を誇る優等国家であり、他国の理不尽な宗教や文化に過度な配慮をする必要はない", "categories": ["ナショナリズム"], "isFast": true}, {"id": 66, "text": "自国の歴史や伝統、国家の象徴を軽視・不敬にするような人間は非国民であり、厳罰に処されるべきである", "categories": ["体育会的権威主義", "ナショナリズム"], "isFast": true}, {"id": 67, "text": "人種差別は仕方のないことである", "categories": ["優生思想", "ナショナリズム"], "isFast": false}, {"id": 68, "text": "「黄泉」のような不吉な言葉や言霊を、意味も理解せず冗談半分で口にすべきではない", "categories": ["体育会的権威主義", "ナショナリズム"], "isFast": false}, {"id": 69, "text": "テイクアウトと偽って店内で飲食し、消費税をケチるような行為は犯罪同然の恥知らずである", "categories": ["自己責任論", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 70, "text": "ルールを守らず迷惑行為を繰り返すチンピラ気質の人間は、社会から厳しく成敗されるべきである", "categories": ["マッチョイズム", "体育会的権威主義"], "isFast": false}, {"id": 71, "text": "不法就労や治安を乱す外国人に対しては、断固たる法的措置をとるべきである", "categories": ["体育会的権威主義", "ナショナリズム"], "isFast": true}, {"id": 72, "text": "自動車免許を取得するなら、通学でダラダラ時間をかけるより合宿で短期集中で取るべきである", "categories": ["メリトクラシー", "ストイシズム"], "isFast": false}, {"id": 73, "text": "男なら30歳までにスカイラインやRCFのような骨太なスポーツセダンに乗るべきである", "categories": ["メリトクラシー", "マッチョイズム", "ルッキズム"], "isFast": false}, {"id": 74, "text": "パソコンのスペックや作業環境をケチる人間は、仕事の生産性を語る資格がない", "categories": ["メリトクラシー", "ストイシズム"], "isFast": false}, {"id": 75, "text": "昼夜逆転して夜更かしし、昼前に起きるような生活リズムを放置するのは社会不適合者の始まりである", "categories": ["自己責任論", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 76, "text": "移動の手間を惜しんでキックボードや電動カートのような道具に頼る若者は、足腰が退化している", "categories": ["自己責任論", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 77, "text": "自分が不利になった途端に話を逸らしたり、冗談めかして誤魔化す奴に議論の資格はない", "categories": ["メリトクラシー", "マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 78, "text": "他人のミスを指摘して優越感に浸る前に、まず自分自身の大学・年収・実績を見つめ直すべきである", "categories": ["メリトクラシー", "自己責任論"], "isFast": false}, {"id": 79, "text": "向上心も探究心もなく、ただ怠惰に日々を浪費する者は、人間ではなく猿以下である", "categories": ["メリトクラシー", "自己責任論", "優生思想", "ストイシズム"], "isFast": false}, {"id": 80, "text": "全員が均等に幸福になる社会など幻想であり、実力や身分の高いエリート層が満足する社会秩序こそが健全で合理的である", "categories": ["メリトクラシー", "優生思想"], "isFast": true}, {"id": 81, "text": "人間を更生させるには、余計なことをすると激しく制裁されるという「恐怖」を身体に植え付ける教育が不可欠である", "categories": ["マッチョイズム", "体育会的権威主義"], "isFast": false}, {"id": 82, "text": "殴り合いの喧嘩や身体的痛みを経験したことのない人間は、温室育ちの甘ったれである", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 83, "text": "秩序や社会の安寧を乱す有害な言論や存在は、民衆のために管理者や国家が強制的に検閲・排除すべきである", "categories": ["体育会的権威主義", "ナショナリズム"], "isFast": false}, {"id": 84, "text": "目上の人間や上司からの連絡には、いかなる状況であれ即座に返信するのが社会人の絶対的義務である", "categories": ["体育会的権威主義", "ストイシズム"], "isFast": false}, {"id": 85, "text": "上司や目上の者からの説教や指導から逃走する行為は、男として最も恥ずべき敗北である", "categories": ["マッチョイズム", "体育会的権威主義", "ストイシズム"], "isFast": false}];
+      const CATEGORIES = [
+        'ストイシズム',
+        '自己責任論',
+        'メリトクラシー',
+        '体育会的権威主義',
+        'マッチョイズム',
+        'ルッキズム',
+        '優生思想',
+        'ナショナリズム'
+      ];
+
+      // --- STATE ---
+      let allLogs = [];
+      let firestoreDb = null;
+      let unsubscribeFirestore = null;
+
+      // --- DOM REFS ---
+      const dbStatusPill = document.getElementById('db-status-pill');
+      const dbStatusText = document.getElementById('db-status-text');
+      const firebasePromptBanner = document.getElementById('firebase-prompt-banner');
+      const bannerConfigBtn = document.getElementById('banner-config-btn');
+      const openConfigBtn = document.getElementById('open-config-btn');
+
+      const kpiTotal = document.getElementById('kpi-total');
+      const kpiRecentTime = document.getElementById('kpi-recent-time');
+      const kpiAvgScore = document.getElementById('kpi-avg-score');
+      const kpiAvgBar = document.getElementById('kpi-avg-bar');
+      const kpiOtokomaeCount = document.getElementById('kpi-otokomae-count');
+      const kpiOtokomaePct = document.getElementById('kpi-otokomae-pct');
+      const kpiMemeshiiCount = document.getElementById('kpi-memeshii-count');
+      const kpiOtokomaeBar = document.getElementById('kpi-otokomae-bar');
+      const kpiMemeshiiBar = document.getElementById('kpi-memeshii-bar');
+      const kpiModeFullCount = document.getElementById('kpi-mode-full-count');
+      const kpiModeQuickCount = document.getElementById('kpi-mode-quick-count');
+      const kpiModeFullBar = document.getElementById('kpi-mode-full-bar');
+      const kpiModeQuickBar = document.getElementById('kpi-mode-quick-bar');
+
+      const globalParamMeters = document.getElementById('global-param-meters');
+      const logsTbody = document.getElementById('logs-tbody');
+      const filteredCountBadge = document.getElementById('filtered-count-badge');
+      const searchInput = document.getElementById('search-input');
+      const verdictFilter = document.getElementById('verdict-filter');
+      const modeFilter = document.getElementById('mode-filter');
+      const clearLocalBtn = document.getElementById('clear-local-btn');
+      const exportCsvBtn = document.getElementById('export-csv-btn');
+
+      // Modals
+      const detailModal = document.getElementById('detail-modal');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const modalCloseActionBtn = document.getElementById('modal-close-action-btn');
+      const modalUserName = document.getElementById('modal-user-name');
+      const modalVerdictBadge = document.getElementById('modal-verdict-badge');
+      const modalMetaInfo = document.getElementById('modal-meta-info');
+      const modalParamChips = document.getElementById('modal-param-chips');
+      const modalAnswersList = document.getElementById('modal-answers-list');
+
+      const configModal = document.getElementById('config-modal');
+      const closeConfigModalBtn = document.getElementById('close-config-modal-btn');
+      const cancelConfigBtn = document.getElementById('cancel-config-btn');
+      const saveConfigBtn = document.getElementById('save-config-btn');
+      const resetConfigBtn = document.getElementById('reset-config-btn');
+      const configPasteArea = document.getElementById('config-paste-area');
+      const configFeedback = document.getElementById('config-feedback');
+
+      // --- FIREBASE HELPER ---
+      function getStoredFirebaseConfig() {
+        try {
+          const saved = localStorage.getItem('imai_firebase_config');
+          if (saved) return JSON.parse(saved);
+        } catch (e) {}
+        if (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId) {
+          return window.FIREBASE_CONFIG;
+        }
+        return null;
+      }
+
+      function initFirebaseConnection() {
+        const cfg = getStoredFirebaseConfig();
+        if (cfg && cfg.projectId && typeof firebase !== 'undefined') {
+          try {
+            if (!firebase.apps.length) {
+              firebase.initializeApp(cfg);
+            }
+            firestoreDb = firebase.firestore();
+
+            // Set Pill to Online
+            dbStatusPill.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-emerald-100 text-emerald-800 border border-emerald-300';
+            dbStatusPill.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500"></span><span>Firestore クラウド同期中</span>';
+            firebasePromptBanner.classList.add('hidden');
+
+            // Listen to real-time changes
+            if (unsubscribeFirestore) unsubscribeFirestore();
+            unsubscribeFirestore = firestoreDb.collection('diagnoses')
+              .orderBy('createdAt', 'desc')
+              .onSnapshot(snapshot => {
+                const cloudLogs = [];
+                snapshot.forEach(doc => {
+                  cloudLogs.push({ id: doc.id, ...doc.data() });
+                });
+                allLogs = cloudLogs;
+                renderDashboard();
+              }, err => {
+                console.error('Firestore listener error:', err);
+                loadLocalLogsFallback();
+              });
+
+            return true;
+          } catch (e) {
+            console.error('Firebase setup failed:', e);
+            loadLocalLogsFallback();
+            return false;
+          }
+        } else {
+          loadLocalLogsFallback();
+          return false;
+        }
+      }
+
+      function loadLocalLogsFallback() {
+        dbStatusPill.className = 'flex items-center gap-1.5 px-3 py-1 rounded-full text-[12px] font-medium bg-amber-100 text-amber-800 border border-amber-300';
+        dbStatusPill.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span><span>ローカル保存中</span>';
+        firebasePromptBanner.classList.remove('hidden');
+
+        try {
+          allLogs = JSON.parse(localStorage.getItem('imai_diagnoses_log') || '[]');
+        } catch (e) {
+          allLogs = [];
+        }
+        renderDashboard();
+      }
+
+      // --- RENDER DASHBOARD ---
+      function renderDashboard() {
+        const total = allLogs.length;
+        kpiTotal.textContent = total;
+
+        if (total === 0) {
+          kpiRecentTime.textContent = '最終更新: なし';
+          kpiAvgScore.textContent = '0';
+          kpiAvgBar.style.width = '0%';
+          kpiOtokomaeCount.textContent = '0';
+          kpiOtokomaePct.textContent = '0';
+          kpiMemeshiiCount.textContent = '0';
+          kpiOtokomaeBar.style.width = '0%';
+          kpiMemeshiiBar.style.width = '100%';
+          kpiModeFullCount.textContent = '0';
+          kpiModeQuickCount.textContent = '0';
+          renderGlobalParams({});
+          renderTable([]);
+          return;
+        }
+
+        // Recent date
+        const first = allLogs[0];
+        if (first.createdAtStr) {
+          const d = new Date(first.createdAtStr);
+          kpiRecentTime.textContent = `最新: ${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // Avg Score
+        const sumScores = allLogs.reduce((acc, cur) => acc + (cur.overallLevel || 0), 0);
+        const avgScore = Math.round(sumScores / total);
+        kpiAvgScore.textContent = avgScore;
+        kpiAvgBar.style.width = `${avgScore}%`;
+
+        // Verdict distribution
+        const otokomaeCount = allLogs.filter(l => l.verdict === '男前' || (l.overallLevel >= 50)).length;
+        const memeshiiCount = total - otokomaeCount;
+        const otokomaePct = Math.round((otokomaeCount / total) * 100);
+        kpiOtokomaeCount.textContent = otokomaeCount;
+        kpiOtokomaePct.textContent = otokomaePct;
+        kpiMemeshiiCount.textContent = memeshiiCount;
+        kpiOtokomaeBar.style.width = `${otokomaePct}%`;
+        kpiMemeshiiBar.style.width = `${100 - otokomaePct}%`;
+
+        // Mode ratio
+        const fullCount = allLogs.filter(l => l.mode === 'full').length;
+        const quickCount = total - fullCount;
+        kpiModeFullCount.textContent = fullCount;
+        kpiModeQuickCount.textContent = quickCount;
+        const fullPct = Math.round((fullCount / total) * 100);
+        kpiModeFullBar.style.width = `${fullPct}%`;
+        kpiModeQuickBar.style.width = `${100 - fullPct}%`;
+
+        // Calculate average parameters across all users
+        const avgParams = {};
+        CATEGORIES.forEach(cat => {
+          let sum = 0;
+          let count = 0;
+          allLogs.forEach(l => {
+            if (l.paramScores && typeof l.paramScores[cat] === 'number') {
+              sum += l.paramScores[cat];
+              count++;
+            }
+          });
+          avgParams[cat] = count > 0 ? Math.round(sum / count) : 0;
+        });
+        renderGlobalParams(avgParams);
+
+        // Filter and render table
+        applyFilters();
+      }
+
+      function renderGlobalParams(avgParams) {
+        globalParamMeters.innerHTML = '';
+        CATEGORIES.forEach(cat => {
+          const val = avgParams[cat] || 0;
+          const isPos = val >= 0;
+          const absVal = Math.min(Math.abs(val), 100);
+          const displayPct = isPos ? `+${val}%` : `${val}%`;
+
+          const row = document.createElement('div');
+          row.className = 'space-y-1';
+
+          let barHtml = '';
+          if (isPos) {
+            barHtml = `
+              <div class="relative h-2 w-full rounded-full bg-surface-container overflow-hidden flex">
+                <div class="w-1/2 h-full flex justify-end relative">
+                  <div class="absolute right-0 top-0 bottom-0 w-[1px] bg-outline-variant z-10"></div>
+                </div>
+                <div class="w-1/2 h-full flex justify-start relative">
+                  <div class="h-full bg-primary-container rounded-r-full" style="width: ${absVal}%;"></div>
+                </div>
+              </div>
+            `;
+          } else {
+            barHtml = `
+              <div class="relative h-2 w-full rounded-full bg-surface-container overflow-hidden flex">
+                <div class="w-1/2 h-full flex justify-end relative">
+                  <div class="absolute right-0 top-0 bottom-0 w-[1px] bg-outline-variant z-10"></div>
+                  <div class="h-full bg-secondary rounded-l-full" style="width: ${absVal}%;"></div>
+                </div>
+                <div class="w-1/2 h-full flex justify-start relative"></div>
+              </div>
+            `;
+          }
+
+          row.innerHTML = `
+            <div class="flex justify-between items-center text-[12px]">
+              <span class="font-medium text-on-surface">${cat}</span>
+              <span class="font-semibold ${isPos ? 'text-primary' : 'text-secondary'}">${displayPct}</span>
+            </div>
+            ${barHtml}
+          `;
+          globalParamMeters.appendChild(row);
+        });
+      }
+
+      function applyFilters() {
+        const search = searchInput.value.trim().toLowerCase();
+        const verdict = verdictFilter.value;
+        const mode = modeFilter.value;
+
+        const filtered = allLogs.filter(l => {
+          if (search && !(l.userName || '').toLowerCase().includes(search)) return false;
+          if (verdict !== 'all' && l.verdict !== verdict) return false;
+          if (mode !== 'all' && l.mode !== mode) return false;
+          return true;
+        });
+
+        filteredCountBadge.textContent = `${filtered.length}件`;
+        renderTable(filtered);
+      }
+
+      searchInput.addEventListener('input', applyFilters);
+      verdictFilter.addEventListener('change', applyFilters);
+      modeFilter.addEventListener('change', applyFilters);
+
+      function renderTable(logs) {
+        logsTbody.innerHTML = '';
+        if (logs.length === 0) {
+          logsTbody.innerHTML = `
+            <tr>
+              <td colspan="7" class="py-8 text-center text-secondary">
+                該当する診断ログがありません
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        logs.forEach(log => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-surface-container-low transition-colors';
+
+          // Format Date
+          let dateStr = '---';
+          if (log.createdAtStr) {
+            const d = new Date(log.createdAtStr);
+            dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+          }
+
+          // Verdict badge
+          const isOtokomae = log.verdict === '男前' || (log.overallLevel >= 50);
+          const verdictBadge = isOtokomae
+            ? '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-primary text-white">男前</span>'
+            : '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-secondary text-white">女々しい</span>';
+
+          // Mode badge
+          const modeBadge = log.mode === 'quick'
+            ? '<span class="px-1.5 py-0.5 rounded text-[11px] bg-surface-container text-secondary">クイック (30問)</span>'
+            : '<span class="px-1.5 py-0.5 rounded text-[11px] bg-primary-fixed text-on-primary-fixed font-medium">精密フル (85問)</span>';
+
+          // Top traits
+          let topTraitsStr = '---';
+          if (log.paramScores) {
+            const sorted = Object.entries(log.paramScores).sort((a, b) => b[1] - a[1]);
+            if (sorted.length >= 2) {
+              topTraitsStr = `${sorted[0][0]} (${sorted[0][1] >= 0 ? '+' : ''}${sorted[0][1]}%), ${sorted[1][0]} (${sorted[1][1] >= 0 ? '+' : ''}${sorted[1][1]}%)`;
+            }
+          }
+
+          tr.innerHTML = `
+            <td class="py-3 px-3 text-secondary text-[12px] whitespace-nowrap">${dateStr}</td>
+            <td class="py-3 px-3 font-semibold text-primary truncate max-w-[120px]">${log.userName || 'もにん'}</td>
+            <td class="py-3 px-3 whitespace-nowrap">${modeBadge}</td>
+            <td class="py-3 px-3 font-bold text-primary">${log.overallLevel ?? 0}%</td>
+            <td class="py-3 px-3 whitespace-nowrap">${verdictBadge}</td>
+            <td class="py-3 px-3 text-secondary text-[12px] truncate max-w-[200px]">${topTraitsStr}</td>
+            <td class="py-3 px-3 text-right whitespace-nowrap">
+              <button class="view-detail-btn px-2.5 py-1 rounded bg-surface-container hover:bg-surface-container-high text-primary font-medium text-[12px] transition-colors" data-id="${log.id}">
+                回答詳細
+              </button>
+            </td>
+          `;
+
+          tr.querySelector('.view-detail-btn').addEventListener('click', () => {
+            openDetailModal(log);
+          });
+
+          logsTbody.appendChild(tr);
+        });
+      }
+
+      // --- DETAIL MODAL ---
+      function openDetailModal(log) {
+        modalUserName.textContent = `${log.userName || 'もにん'} さんの回答`;
+        const isOtokomae = log.verdict === '男前' || (log.overallLevel >= 50);
+        modalVerdictBadge.className = isOtokomae
+          ? 'px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-primary text-white'
+          : 'px-2.5 py-0.5 rounded-full text-[12px] font-semibold bg-secondary text-white';
+        modalVerdictBadge.textContent = isOtokomae ? '男前' : '女々しい';
+
+        const dStr = log.createdAtStr ? new Date(log.createdAtStr).toLocaleString('ja-JP') : '---';
+        const modeText = log.mode === 'quick' ? 'クイック診断 (全30問)' : '精密フル診断 (全85問)';
+        modalMetaInfo.textContent = `${dStr} ・ ${modeText} ・ 今井くんレベル ${log.overallLevel ?? 0}%`;
+
+        // Param Chips
+        modalParamChips.innerHTML = '';
+        if (log.paramScores) {
+          Object.entries(log.paramScores).forEach(([cat, val]) => {
+            const isPos = val >= 0;
+            const chip = document.createElement('div');
+            chip.className = 'p-2 rounded-lg bg-surface-container flex items-center justify-between';
+            chip.innerHTML = `
+              <span class="text-secondary truncate">${cat}</span>
+              <span class="font-bold ${isPos ? 'text-primary' : 'text-secondary'}">${isPos ? '+' : ''}${val}%</span>
+            `;
+            modalParamChips.appendChild(chip);
+          });
+        }
+
+        // Questions List
+        modalAnswersList.innerHTML = '';
+        const userAnswers = log.answers || {};
+
+        ALL_QUESTIONS.forEach(q => {
+          const isRelevantToMode = log.mode === 'full' || q.isFast;
+          const ans = userAnswers[q.id];
+
+          const item = document.createElement('div');
+          item.className = 'p-3 rounded-lg bg-surface-container-lowest border border-surface-container flex items-start justify-between gap-3';
+
+          let ansBadge = '';
+          if (!isRelevantToMode && !ans) {
+            ansBadge = '<span class="px-2 py-0.5 rounded text-[11px] bg-surface-container text-outline whitespace-nowrap">モード対象外</span>';
+          } else if (ans === 'yes') {
+            ansBadge = '<span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-primary text-white whitespace-nowrap flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">check</span>はい</span>';
+          } else if (ans === 'neutral') {
+            ansBadge = '<span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-tertiary-container text-on-tertiary whitespace-nowrap flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">remove</span>中立</span>';
+          } else if (ans === 'no') {
+            ansBadge = '<span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-secondary text-white whitespace-nowrap flex items-center gap-1"><span class="material-symbols-outlined text-[14px]">close</span>いいえ</span>';
+          } else {
+            ansBadge = '<span class="px-2 py-0.5 rounded text-[11px] bg-surface-container text-outline whitespace-nowrap">未回答</span>';
+          }
+
+          item.innerHTML = `
+            <div class="space-y-1 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-[12px] text-secondary">Q.${q.id}</span>
+                <span class="text-[11px] px-1.5 py-0.2 rounded bg-surface-container text-secondary">${q.categories.join('・')}</span>
+              </div>
+              <p class="text-[13px] text-on-surface leading-snug">「${q.text}」</p>
+            </div>
+            <div class="shrink-0 pt-1">${ansBadge}</div>
+          `;
+          modalAnswersList.appendChild(item);
+        });
+
+        detailModal.classList.remove('hidden');
+      }
+
+      function closeDetailModal() {
+        detailModal.classList.add('hidden');
+      }
+      closeModalBtn.addEventListener('click', closeDetailModal);
+      modalCloseActionBtn.addEventListener('click', closeDetailModal);
+      detailModal.addEventListener('click', (e) => {
+        if (e.target === detailModal) closeDetailModal();
+      });
+
+      // --- CONFIG MODAL ---
+      function openConfigModal() {
+        const stored = getStoredFirebaseConfig();
+        if (stored) {
+          configPasteArea.value = JSON.stringify(stored, null, 2);
+        } else {
+          configPasteArea.value = '';
+        }
+        configFeedback.classList.add('hidden');
+        configModal.classList.remove('hidden');
+      }
+
+      function closeConfigModal() {
+        configModal.classList.add('hidden');
+      }
+
+      openConfigBtn.addEventListener('click', openConfigModal);
+      bannerConfigBtn.addEventListener('click', openConfigModal);
+      closeConfigModalBtn.addEventListener('click', closeConfigModal);
+      cancelConfigBtn.addEventListener('click', closeConfigModal);
+      configModal.addEventListener('click', (e) => {
+        if (e.target === configModal) closeConfigModal();
+      });
+
+      // Parse and save Firebase Config
+      saveConfigBtn.addEventListener('click', () => {
+        const raw = configPasteArea.value.trim();
+        if (!raw) return;
+
+        let parsedConfig = null;
+
+        // Try direct JSON
+        try {
+          parsedConfig = JSON.parse(raw);
+        } catch (e) {
+          // Try regex extraction from JS code snippet
+          try {
+            const extract = (key) => {
+              const match = raw.match(new RegExp(`['"]?${key}['"]?\s*:\s*['"]([^'"]+)['"]`));
+              return match ? match[1] : '';
+            };
+            parsedConfig = {
+              apiKey: extract('apiKey'),
+              authDomain: extract('authDomain'),
+              projectId: extract('projectId'),
+              storageBucket: extract('storageBucket'),
+              messagingSenderId: extract('messagingSenderId'),
+              appId: extract('appId')
+            };
+          } catch (err) {}
+        }
+
+        if (!parsedConfig || !parsedConfig.projectId) {
+          configFeedback.className = 'text-[12px] p-2.5 rounded-lg bg-red-100 text-red-800 border border-red-200';
+          configFeedback.textContent = 'エラー: projectId または apiKey が検出できませんでした。firebaseConfig をそのままコピー＆ペーストしてください。';
+          configFeedback.classList.remove('hidden');
+          return;
+        }
+
+        localStorage.setItem('imai_firebase_config', JSON.stringify(parsedConfig));
+        configFeedback.className = 'text-[12px] p-2.5 rounded-lg bg-emerald-100 text-emerald-800 border border-emerald-200';
+        configFeedback.textContent = 'Firebase設定を保存しました！接続を初期化中...';
+        configFeedback.classList.remove('hidden');
+
+        setTimeout(() => {
+          closeConfigModal();
+          initFirebaseConnection();
+        }, 600);
+      });
+
+      resetConfigBtn.addEventListener('click', () => {
+        if (confirm('Firebase設定をリセットしてローカルモードに戻しますか？')) {
+          localStorage.removeItem('imai_firebase_config');
+          configPasteArea.value = '';
+          closeConfigModal();
+          initFirebaseConnection();
+        }
+      });
+
+      // --- CLEAR LOCAL LOGS ---
+      clearLocalBtn.addEventListener('click', () => {
+        if (confirm('ローカル端末に保存されている診断ログを消去しますか？（Firebase上のデータは消去されません）')) {
+          localStorage.removeItem('imai_diagnoses_log');
+          if (!firestoreDb) {
+            allLogs = [];
+            renderDashboard();
+          }
+        }
+      });
+
+      // --- CSV EXPORT (UTF-8 BOM for Excel) ---
+      exportCsvBtn.addEventListener('click', () => {
+        if (allLogs.length === 0) {
+          alert('エクスポートするデータがありません。');
+          return;
+        }
+
+        // CSV Header
+        const headers = [
+          'ID',
+          '診断日時',
+          'お名前',
+          '診断モード',
+          '今井くんレベル(%)',
+          '判定区分',
+          ...CATEGORIES.map(c => `${c}(%)`),
+          ...ALL_QUESTIONS.map(q => `Q${q.id}_${q.text.replace(/[",]/g, '')}`)
+        ];
+
+        const rows = allLogs.map(l => {
+          const dateStr = l.createdAtStr ? new Date(l.createdAtStr).toLocaleString('ja-JP') : '';
+          const paramVals = CATEGORIES.map(c => l.paramScores ? (l.paramScores[c] ?? '') : '');
+          const qVals = ALL_QUESTIONS.map(q => {
+            const ans = l.answers ? l.answers[q.id] : '';
+            if (ans === 'yes') return 'はい';
+            if (ans === 'neutral') return 'どちらともいえない';
+            if (ans === 'no') return 'いいえ';
+            return '';
+          });
+
+          return [
+            `"${l.id || ''}"`,
+            `"${dateStr}"`,
+            `"${(l.userName || 'もにん').replace(/"/g, '""')}"`,
+            `"${l.mode === 'quick' ? 'クイック(30問)' : '精密フル(85問)'}"`,
+            l.overallLevel ?? '',
+            `"${l.verdict || ''}"`,
+            ...paramVals,
+            ...qVals.map(v => `"${v}"`)
+          ].join(',');
+        });
+
+        const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const now = new Date();
+        const dateStamp = now.toISOString().slice(0, 10).replace(/-/g, '') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0');
+        a.href = url;
+        a.download = `imai_shindan_analytics_${dateStamp}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+
+      // --- INITIALIZE ---
+      initFirebaseConnection();
+    })();
+  </script>
+</body>
+</html>

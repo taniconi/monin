@@ -1,0 +1,22 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Design & reference assets
+figma/
+
+# Source datasets & build script (index.html contains all data/logic and runs standalone)
+questions.csv
+questions.json
+build_index.py
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
